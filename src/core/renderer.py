@@ -58,19 +58,19 @@ def create_code_image(
         formatter_kwargs.update({
             "line_number_bg": "#1a1b26",
             "line_number_fg": "#565f89", 
-            "hl_color": "#414868"
+            "hl_color": "#FFE066"         # Bright sunny yellow highlight
         })
     elif theme == "nord":
         formatter_kwargs.update({
             "line_number_bg": "#2e3440",
             "line_number_fg": "#616e88",
-            "hl_color": "#3b4252"
+            "hl_color": "#4ECDC4"         # Vibrant turquoise highlight
         })
     else:
         formatter_kwargs.update({
             "line_number_bg": "#2d2d2d",
             "line_number_fg": "#8f8f8f", 
-            "hl_color": "#3c3c3c"
+            "hl_color": "#FF6B9D"         # Bright pink highlight
         })
     
     if font_path:
