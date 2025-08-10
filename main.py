@@ -93,7 +93,6 @@ CODESHOT_DESCRIPTION = RichToolDescription(
 async def codeshot(
     code: Annotated[str | None, Field(description="Raw code text to convert to image")] = None,
     code_url: Annotated[AnyUrl | None, Field(description="GitHub/Gist URL to fetch code from")] = None,
-    from_image: Annotated[bool, Field(description="Whether to generate from an existing image (for compatibility)")] = False,
     language: Annotated[str | None, Field(description="Programming language (auto-detected if not specified)")] = None,
     theme: Annotated[str | None, Field(description="Theme: Dark themes: 'dracula', 'nord', 'monokai', 'material', 'one-dark', 'gruvbox-dark', 'tokyo-night', 'catppuccin', 'github-dark', 'solarized-dark', 'zenburn', 'vim', 'native', 'fruity', 'rrt', 'paraiso-dark', 'stata-dark', 'nord-darker', 'emacs', 'terminal', 'hacker', 'cyberpunk'. Light themes: 'solarized-light', 'github-light', 'vs', 'xcode', 'atom-light', 'intellij-light', 'sublime-light', 'friendly', 'pastie', 'tango', 'murphy', 'colorful', 'gruvbox-light', 'paraiso-light', 'stata-light', or leave empty for random theme")] = None,
     frame_style: Annotated[str | None, Field(description="Frame: 'macos', 'windows', 'floating', 'minimal', 'none', or leave empty for random frame")] = None,
@@ -115,14 +114,6 @@ async def codeshot(
     request_logger.debug(f"Parameters: theme={theme}, frame_style={frame_style}, background={background}, font_family={font_family}")
     
     try:
-        # Handle from_image parameter for compatibility
-        if from_image:
-            request_logger.warning("Image-based code generation attempted (not supported)")
-            raise McpError(ErrorData(
-                code=INVALID_PARAMS, 
-                message="Image-based code generation is not currently supported. Please provide code text or a code URL instead."
-            ))
-        
         # Get code content
         if code_url:
             request_logger.info(f"Fetching code from URL: {code_url}")
