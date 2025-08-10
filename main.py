@@ -23,11 +23,13 @@ logger = setup_logging()
 
 TOKEN = os.environ.get("AUTH_TOKEN")
 MY_NUMBER = os.environ.get("MY_NUMBER")
+PORT = int(os.environ.get("PORT", 8086))  # Railway sets PORT automatically
 
 assert TOKEN is not None, "Please set AUTH_TOKEN in your .env file"
 assert MY_NUMBER is not None, "Please set MY_NUMBER in your .env file"
 
 logger.info("Environment variables loaded successfully")
+logger.info(f"Server will run on port {PORT}")
 
 
 class SimpleBearerAuthProvider(BearerAuthProvider):
@@ -236,10 +238,10 @@ async def codeshot(
 
 async def main():
     """Main entry point."""
-    logger.info("🚀 Starting Codeshot MCP Server on http://0.0.0.0:8086")
-    print("🚀 Starting Codeshot MCP Server on http://0.0.0.0:8086")
+    logger.info(f"🚀 Starting Codeshot MCP Server on http://0.0.0.0:{PORT}")
+    print(f"🚀 Starting Codeshot MCP Server on http://0.0.0.0:{PORT}")
     try:
-        await mcp.run_async("streamable-http", host="0.0.0.0", port=8086)
+        await mcp.run_async("streamable-http", host="0.0.0.0", port=PORT)
     except Exception as e:
         logger.error(f"Failed to start server: {str(e)}", exc_info=True)
         raise

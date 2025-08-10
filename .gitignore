@@ -74,6 +74,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.env.railway
 
 # Logs
 logs/
@@ -90,12 +91,8 @@ output/
 screenshots/
 temp_images/
 
-# Optional font assets (download separately)
-fonts/FiraCode/
-fonts/JetBrainsMono/
-fonts/SourceCodePro/
-!fonts/__init__.py
-!fonts/config.py
+# Environment variables for Railway deployment
+.env.railway
 
 # Jupyter Notebook
 .ipynb_checkpoints

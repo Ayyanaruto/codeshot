@@ -1,6 +1,41 @@
 # 🎨 Codeshot - Beautiful Code Screenshots
 
-Generate stunning, professional code screenshots with themes, effects, and customizable styling. Perfect for social media, presentations, documentation, and sharing code snippets.
+Generate stunning, professional code screenshots with themes, effects, and customizable styling. Perfect for social media, presentations, documentation, and sharing codeFor detailed logging configuration, see [docs/LOGGING.md](docs/LOGGING.md).
+
+## 🚢 Deployment
+
+### Railway Deployment (Recommended)
+
+This project is optimized for Railway deployment with Docker.
+
+**Quick Deploy:**
+1. Fork this repository
+2. Connect to Railway
+3. Set environment variables (`AUTH_TOKEN`, `MY_NUMBER`)
+4. Deploy!
+
+**Detailed Instructions:**
+- 📋 [Deployment Checklist](DEPLOYMENT_CHECKLIST.md)
+- 📖 [Railway Deployment Guide](RAILWAY_DEPLOYMENT.md)
+
+**Included in Deployment:**
+- ✅ All fonts bundled (Fira Code, JetBrains Mono, Source Code Pro)
+- ✅ System dependencies (Tesseract, OpenCV, PIL)
+- ✅ Production-ready Docker configuration
+- ✅ Automatic environment detection
+
+### Local Development
+
+```bash
+# Run locally
+python main.py
+
+# Test with Docker
+docker build -t codeshot-mcp .
+docker run -p 8086:8086 -e AUTH_TOKEN=test -e MY_NUMBER=123 codeshot-mcp
+```
+
+## 📄 Licenseippets.
 
 ## ✨ Features
 
