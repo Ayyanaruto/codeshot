@@ -7,6 +7,10 @@ from config.constants import (
     AVAILABLE_THEMES, AVAILABLE_FRAMES, AVAILABLE_BACKGROUNDS, 
     AVAILABLE_FONTS, DEFAULT_FONT_SIZE_RANGE, FONT_SIZE_LIMITS
 )
+from config.logging_config import get_logger
+
+# Module logger
+logger = get_logger(__name__)
 
 
 class ValidationResult:
@@ -22,9 +26,13 @@ def validate_theme(theme: Optional[str], result: ValidationResult) -> str:
     if theme is None:
         theme = random.choice(AVAILABLE_THEMES)
         result.random_selections.append("Theme")
+        logger.debug(f"Randomly selected theme: {theme}")
     elif theme not in AVAILABLE_THEMES:
         result.fallback_notifications.append(f"Invalid theme '{theme}', using 'dracula'")
+        logger.warning(f"Invalid theme '{theme}', falling back to 'dracula'")
         theme = "dracula"
+    else:
+        logger.debug(f"Using specified theme: {theme}")
     return theme
 
 
@@ -33,9 +41,13 @@ def validate_frame_style(frame_style: Optional[str], result: ValidationResult) -
     if frame_style is None:
         frame_style = random.choice(AVAILABLE_FRAMES)
         result.random_selections.append("Frame")
+        logger.debug(f"Randomly selected frame style: {frame_style}")
     elif frame_style not in AVAILABLE_FRAMES:
         result.fallback_notifications.append(f"Invalid frame style '{frame_style}', using 'macos'")
+        logger.warning(f"Invalid frame style '{frame_style}', falling back to 'macos'")
         frame_style = "macos"
+    else:
+        logger.debug(f"Using specified frame style: {frame_style}")
     return frame_style
 
 
@@ -44,9 +56,13 @@ def validate_background(background: Optional[str], result: ValidationResult) -> 
     if background is None:
         background = random.choice(AVAILABLE_BACKGROUNDS)
         result.random_selections.append("Background")
+        logger.debug(f"Randomly selected background: {background}")
     elif background not in AVAILABLE_BACKGROUNDS and not _is_valid_hex_color(background):
         result.fallback_notifications.append(f"Invalid background '{background}', using 'purple'")
+        logger.warning(f"Invalid background '{background}', falling back to 'purple'")
         background = "purple"
+    else:
+        logger.debug(f"Using specified background: {background}")
     return background
 
 

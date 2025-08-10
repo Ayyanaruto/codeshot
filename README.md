@@ -173,7 +173,47 @@ pytest --cov=src --cov-report=html
 pytest tests/test_generator.py
 ```
 
-## 📄 License
+## � Logging and Monitoring
+
+Codeshot includes a comprehensive logging system for debugging and monitoring:
+
+### Quick Setup
+```bash
+# Set log level in environment
+export LOG_LEVEL=DEBUG  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
+
+### Features
+- **Colored Console Output**: Easy-to-read colored logs in terminal
+- **Rotating Log Files**: Automatic log rotation (10MB max, 5 backups)
+- **Performance Monitoring**: Built-in timing for operations
+- **Module-Specific Logging**: Separate loggers for each component
+- **Error Tracking**: Detailed error logging with stack traces
+
+### Example Usage
+```python
+from config.logging_config import get_logger, log_performance
+
+logger = get_logger(__name__)
+
+# Basic logging
+logger.info("Starting screenshot generation")
+logger.debug("Processing parameters")
+logger.error("Something went wrong")
+
+# Performance monitoring
+with log_performance(logger, "image generation"):
+    generate_screenshot()
+```
+
+### Log Files
+- Default location: `logs/codeshot.log`
+- Automatic rotation when files exceed 10MB
+- Configurable via `LOG_FILE` environment variable
+
+For detailed logging configuration, see [docs/LOGGING.md](docs/LOGGING.md).
+
+## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

@@ -13,15 +13,21 @@ from pydantic import BaseModel, Field, AnyUrl
 
 from src.core.generator import CodeshotGenerator
 from src.utils.http import fetch_code_from_url
+from config.logging_config import setup_logging, get_logger
 
 # Load environment variables
 load_dotenv()
+
+# Setup logging
+logger = setup_logging()
 
 TOKEN = os.environ.get("AUTH_TOKEN")
 MY_NUMBER = os.environ.get("MY_NUMBER")
 
 assert TOKEN is not None, "Please set AUTH_TOKEN in your .env file"
 assert MY_NUMBER is not None, "Please set MY_NUMBER in your .env file"
+
+logger.info("Environment variables loaded successfully")
 
 
 class SimpleBearerAuthProvider(BearerAuthProvider):
@@ -31,15 +37,20 @@ class SimpleBearerAuthProvider(BearerAuthProvider):
         k = RSAKeyPair.generate()
         super().__init__(public_key=k.public_key, jwks_uri=None, issuer=None, audience=None)
         self.token = token
+        self.logger = get_logger(__name__)
+        self.logger.debug("SimpleBearerAuthProvider initialized")
 
     async def load_access_token(self, token: str) -> AccessToken | None:
+        self.logger.debug(f"Loading access token for authentication")
         if token == self.token:
+            self.logger.info("Authentication successful")
             return AccessToken(
                 token=token,
                 client_id="codeshot-client",
                 scopes=["*"],
                 expires_at=None,
             )
+        self.logger.warning("Authentication failed - invalid token")
         return None
 
 
@@ -56,10 +67,13 @@ mcp = FastMCP(
     auth=SimpleBearerAuthProvider(TOKEN),
 )
 
+logger.info("MCP server initialized with authentication")
+
 
 @mcp.tool
 async def validate() -> str:
     """Validation tool required by Puch."""
+    logger.debug("Validation tool called")
     return cast(str, MY_NUMBER)
 
 
@@ -81,7 +95,7 @@ async def codeshot(
     code_url: Annotated[AnyUrl | None, Field(description="GitHub/Gist URL to fetch code from")] = None,
     from_image: Annotated[bool, Field(description="Whether to generate from an existing image (for compatibility)")] = False,
     language: Annotated[str | None, Field(description="Programming language (auto-detected if not specified)")] = None,
-    theme: Annotated[str | None, Field(description="Theme: 'dracula', 'nord', 'monokai', 'github-light', 'solarized-light', 'material', 'one-dark', 'vs', or leave empty for random theme")] = None,
+    theme: Annotated[str | None, Field(description="Theme: Dark themes: 'dracula', 'nord', 'monokai', 'material', 'one-dark', 'gruvbox-dark', 'tokyo-night', 'catppuccin', 'github-dark', 'solarized-dark', 'zenburn', 'vim', 'native', 'fruity', 'rrt', 'paraiso-dark', 'stata-dark', 'nord-darker', 'emacs', 'terminal', 'hacker', 'cyberpunk'. Light themes: 'solarized-light', 'github-light', 'vs', 'xcode', 'atom-light', 'intellij-light', 'sublime-light', 'friendly', 'pastie', 'tango', 'murphy', 'colorful', 'gruvbox-light', 'paraiso-light', 'stata-light', or leave empty for random theme")] = None,
     frame_style: Annotated[str | None, Field(description="Frame: 'macos', 'windows', 'floating', 'minimal', 'none', or leave empty for random frame")] = None,
     background: Annotated[str | None, Field(description="Background: hex color, 'purple', 'cyan', 'orange', 'pink', 'green', 'blue', 'red', 'yellow', 'magenta', 'teal', 'lime', 'indigo', 'violet', 'coral', 'turquoise', 'neon-purple', 'transparent', or leave empty for random background")] = None,
     font_family: Annotated[str | None, Field(description="Font: 'fira-code', 'jetbrains-mono', 'source-code-pro', 'system', or leave empty for random font")] = None,
@@ -96,9 +110,14 @@ async def codeshot(
 ) -> list[TextContent | ImageContent]:
     """Generate stunning code screenshots with advanced themes, effects, and professional styling."""
     
+    request_logger = get_logger(__name__)
+    request_logger.info("Codeshot generation requested")
+    request_logger.debug(f"Parameters: theme={theme}, frame_style={frame_style}, background={background}, font_family={font_family}")
+    
     try:
         # Handle from_image parameter for compatibility
         if from_image:
+            request_logger.warning("Image-based code generation attempted (not supported)")
             raise McpError(ErrorData(
                 code=INVALID_PARAMS, 
                 message="Image-based code generation is not currently supported. Please provide code text or a code URL instead."
@@ -106,16 +125,22 @@ async def codeshot(
         
         # Get code content
         if code_url:
+            request_logger.info(f"Fetching code from URL: {code_url}")
             code_content = await fetch_code_from_url(str(code_url))
+            request_logger.debug(f"Successfully fetched {len(code_content)} characters from URL")
         elif code:
+            request_logger.info("Using provided code text")
             code_content = code
+            request_logger.debug(f"Code length: {len(code_content)} characters")
         else:
+            request_logger.error("No code source provided")
             raise McpError(ErrorData(
                 code=INVALID_PARAMS, 
                 message="Please provide either code text or a code URL."
             ))
         
         # Generate screenshot
+        request_logger.info("Starting screenshot generation")
         generator = CodeshotGenerator()
         response_text, img_base64 = generator.generate(
             code=code_content,
@@ -134,12 +159,19 @@ async def codeshot(
             border_glow=border_glow,
         )
         
+        request_logger.info("Screenshot generation completed successfully")
+        request_logger.debug(f"Generated image size: {len(img_base64)} characters (base64)")
+        
         return [
             TextContent(type="text", text=response_text),
             ImageContent(type="image", mimeType="image/png", data=img_base64)
         ]
         
+    except McpError:
+        # Re-raise MCP errors as-is
+        raise
     except Exception as e:
+        request_logger.error(f"Unexpected error during screenshot generation: {str(e)}", exc_info=True)
         raise McpError(ErrorData(
             code=INTERNAL_ERROR, 
             message=f"Failed to generate code screenshot: {str(e)}"
@@ -148,9 +180,19 @@ async def codeshot(
 
 async def main():
     """Main entry point."""
+    logger.info("🚀 Starting Codeshot MCP Server on http://0.0.0.0:8086")
     print("🚀 Starting Codeshot MCP Server on http://0.0.0.0:8086")
-    await mcp.run_async("streamable-http", host="0.0.0.0", port=8086)
+    try:
+        await mcp.run_async("streamable-http", host="0.0.0.0", port=8086)
+    except Exception as e:
+        logger.error(f"Failed to start server: {str(e)}", exc_info=True)
+        raise
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Server shutdown requested by user")
+    except Exception as e:
+        logger.critical(f"Critical error during server startup: {str(e)}", exc_info=True)

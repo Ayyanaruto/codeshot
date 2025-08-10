@@ -2,14 +2,46 @@
 
 # Theme mappings for pygments
 THEME_MAPPINGS = {
+    # Dark themes
     "dracula": "dracula",
     "nord": "nord", 
     "monokai": "monokai",
-    "github-light": "github-light",
-    "solarized-light": "solarized-light", 
     "material": "material",
-    "one-dark": "monokai",
+    "one-dark": "one-dark",
+    "gruvbox-dark": "gruvbox-dark",
+    "tokyo-night": "monokai",
+    "catppuccin": "dracula",
+    "github-dark": "github-dark",
+    "solarized-dark": "solarized-dark",
+    "zenburn": "zenburn",
+    "vim": "vim",
+    "native": "native",
+    "fruity": "fruity",
+    "rrt": "rrt",
+    "paraiso-dark": "paraiso-dark",
+    "stata-dark": "stata-dark",
+    "nord-darker": "nord-darker",
+    "emacs": "emacs",
+    "terminal": "native",
+    "hacker": "vim",
+    "cyberpunk": "fruity",
+    
+    # Light themes
+    "solarized-light": "solarized-light", 
     "vs": "vs",
+    "github-light": "default",
+    "xcode": "default",
+    "atom-light": "friendly",
+    "intellij-light": "default",
+    "sublime-light": "colorful",
+    "friendly": "friendly",
+    "pastie": "pastie",
+    "tango": "tango",
+    "murphy": "murphy",
+    "colorful": "colorful",
+    "gruvbox-light": "gruvbox-light",
+    "paraiso-light": "paraiso-light",
+    "stata-light": "stata-light",
 }
 
 # Available options for validation
@@ -48,3 +80,10 @@ SHADOW_LAYERS = [
 PADDING = 80
 TITLE_BAR_HEIGHT = 50
 EXTRA_SPACE = 40
+
+# Logging settings
+LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_LOG_LEVEL = "INFO"
+LOG_FILE_MAX_BYTES = 10 * 1024 * 1024  # 10MB
+LOG_FILE_BACKUP_COUNT = 5
