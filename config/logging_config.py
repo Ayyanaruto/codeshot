@@ -8,8 +8,11 @@ from pathlib import Path
 from typing import Optional
 
 from config.constants import (
-    LOG_FORMAT, LOG_DATE_FORMAT, DEFAULT_LOG_LEVEL, 
-    LOG_FILE_MAX_BYTES, LOG_FILE_BACKUP_COUNT
+    DEFAULT_LOG_LEVEL,
+    LOG_DATE_FORMAT,
+    LOG_FILE_BACKUP_COUNT,
+    LOG_FILE_MAX_BYTES,
+    LOG_FORMAT,
 )
 
 
@@ -138,7 +141,7 @@ def log_function_call(logger: logging.Logger):
     def decorator(func):
         def wrapper(*args, **kwargs):
             import time
-            
+
             # Log function entry
             logger.debug(f"Calling {func.__name__} with args={args}, kwargs={kwargs}")
             

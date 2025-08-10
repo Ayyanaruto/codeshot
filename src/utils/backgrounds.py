@@ -1,6 +1,7 @@
 """Background generation utilities."""
 
 from PIL import Image, ImageDraw, ImageFilter
+
 from config.constants import BACKGROUND_COLORS
 
 
@@ -14,18 +15,18 @@ def create_neon_background(width: int, height: int) -> Image.Image:
     """Create neon-style background with grid pattern."""
     img = Image.new("RGB", (width, height), "#000000")
     draw_bg = ImageDraw.Draw(img)
-    
+
     grid_spacing = 50
     neon_color = "#00ff41"
-    
+
     # Vertical lines
     for x in range(0, width, grid_spacing):
         draw_bg.line([(x, 0), (x, height)], fill=neon_color, width=1)
-    
+
     # Horizontal lines
     for y in range(0, height, grid_spacing):
         draw_bg.line([(0, y), (width, y)], fill=neon_color, width=1)
-    
+
     return img.filter(ImageFilter.GaussianBlur(radius=2))
 
 

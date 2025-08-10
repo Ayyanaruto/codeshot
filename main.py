@@ -32,7 +32,7 @@ logger.info("Environment variables loaded successfully")
 
 class SimpleBearerAuthProvider(BearerAuthProvider):
     """Simple bearer auth provider for MCP server."""
-    
+
     def __init__(self, token: str):
         k = RSAKeyPair.generate()
         super().__init__(public_key=k.public_key, jwks_uri=None, issuer=None, audience=None)
@@ -56,6 +56,7 @@ class SimpleBearerAuthProvider(BearerAuthProvider):
 
 class RichToolDescription(BaseModel):
     """Rich tool description model."""
+
     description: str
     use_when: str
     side_effects: str | None = None
@@ -92,27 +93,61 @@ CODESHOT_DESCRIPTION = RichToolDescription(
 @mcp.tool(description=CODESHOT_DESCRIPTION.model_dump_json())
 async def codeshot(
     code: Annotated[str | None, Field(description="Raw code text to convert to image")] = None,
-    code_url: Annotated[AnyUrl | None, Field(description="GitHub/Gist URL to fetch code from")] = None,
-    language: Annotated[str | None, Field(description="Programming language (auto-detected if not specified)")] = None,
-    theme: Annotated[str | None, Field(description="Theme: Dark themes: 'dracula', 'nord', 'monokai', 'material', 'one-dark', 'gruvbox-dark', 'tokyo-night', 'catppuccin', 'github-dark', 'solarized-dark', 'zenburn', 'vim', 'native', 'fruity', 'rrt', 'paraiso-dark', 'stata-dark', 'nord-darker', 'emacs', 'terminal', 'hacker', 'cyberpunk'. Light themes: 'solarized-light', 'github-light', 'vs', 'xcode', 'atom-light', 'intellij-light', 'sublime-light', 'friendly', 'pastie', 'tango', 'murphy', 'colorful', 'gruvbox-light', 'paraiso-light', 'stata-light', or leave empty for random theme")] = None,
-    frame_style: Annotated[str | None, Field(description="Frame: 'macos', 'windows', 'floating', 'minimal', 'none', or leave empty for random frame")] = None,
-    background: Annotated[str | None, Field(description="Background: hex color, 'purple', 'cyan', 'orange', 'pink', 'green', 'blue', 'red', 'yellow', 'magenta', 'teal', 'lime', 'indigo', 'violet', 'coral', 'turquoise', 'neon-purple', 'transparent', or leave empty for random background")] = None,
-    font_family: Annotated[str | None, Field(description="Font: 'fira-code', 'jetbrains-mono', 'source-code-pro', 'system', or leave empty for random font")] = None,
-    font_size: Annotated[int | None, Field(description="Font size (8-32), or leave empty for random size")] = None,
+    code_url: Annotated[
+        AnyUrl | None, Field(description="GitHub/Gist URL to fetch code from")
+    ] = None,
+    language: Annotated[
+        str | None, Field(description="Programming language (auto-detected if not specified)")
+    ] = None,
+    theme: Annotated[
+        str | None,
+        Field(
+            description="Theme: Dark themes: 'dracula', 'nord', 'monokai', 'material', 'one-dark', 'gruvbox-dark', 'tokyo-night', 'catppuccin', 'github-dark', 'solarized-dark', 'zenburn', 'vim', 'native', 'fruity', 'rrt', 'paraiso-dark', 'stata-dark', 'nord-darker', 'emacs', 'terminal', 'hacker', 'cyberpunk'. Light themes: 'solarized-light', 'github-light', 'vs', 'xcode', 'atom-light', 'intellij-light', 'sublime-light', 'friendly', 'pastie', 'tango', 'murphy', 'colorful', 'gruvbox-light', 'paraiso-light', 'stata-light', or leave empty for random theme"
+        ),
+    ] = None,
+    frame_style: Annotated[
+        str | None,
+        Field(
+            description="Frame: 'macos', 'windows', 'floating', 'minimal', 'none', or leave empty for random frame"
+        ),
+    ] = None,
+    background: Annotated[
+        str | None,
+        Field(
+            description="Background: hex color, 'purple', 'cyan', 'orange', 'pink', 'green', 'blue', 'red', 'yellow', 'magenta', 'teal', 'lime', 'indigo', 'violet', 'coral', 'turquoise', 'neon-purple', 'transparent', or leave empty for random background"
+        ),
+    ] = None,
+    font_family: Annotated[
+        str | None,
+        Field(
+            description="Font: 'fira-code', 'jetbrains-mono', 'source-code-pro', 'system', or leave empty for random font"
+        ),
+    ] = None,
+    font_size: Annotated[
+        int | None, Field(description="Font size (8-32), or leave empty for random size")
+    ] = None,
     line_numbers: Annotated[bool, Field(description="Show line numbers")] = True,
     window_title: Annotated[str | None, Field(description="Custom window title")] = None,
-    shadow: Annotated[bool | None, Field(description="Add drop shadow effect, or leave empty for random")] = None,
+    shadow: Annotated[
+        bool | None, Field(description="Add drop shadow effect, or leave empty for random")
+    ] = None,
     reflection: Annotated[bool, Field(description="Add reflection effect")] = False,
-    rounded_corners: Annotated[bool | None, Field(description="Rounded corners, or leave empty for random")] = None,
+    rounded_corners: Annotated[
+        bool | None, Field(description="Rounded corners, or leave empty for random")
+    ] = None,
     watermark: Annotated[str | None, Field(description="Add watermark text")] = None,
-    border_glow: Annotated[bool | None, Field(description="Add glowing border effect, or leave empty for random")] = None,
+    border_glow: Annotated[
+        bool | None, Field(description="Add glowing border effect, or leave empty for random")
+    ] = None,
 ) -> list[TextContent | ImageContent]:
     """Generate stunning code screenshots with advanced themes, effects, and professional styling."""
-    
+
     request_logger = get_logger(__name__)
     request_logger.info("Codeshot generation requested")
-    request_logger.debug(f"Parameters: theme={theme}, frame_style={frame_style}, background={background}, font_family={font_family}")
-    
+    request_logger.debug(
+        f"Parameters: theme={theme}, frame_style={frame_style}, background={background}, font_family={font_family}"
+    )
+
     try:
         # Get code content
         if code_url:
@@ -125,37 +160,40 @@ async def codeshot(
             request_logger.debug(f"Code length: {len(code_content)} characters")
         else:
             request_logger.error("No code source provided")
-            raise McpError(ErrorData(
-                code=INVALID_PARAMS, 
-                message="Please provide either code text or a code URL."
-            ))
-        
+            raise McpError(
+                ErrorData(
+                    code=INVALID_PARAMS, message="Please provide either code text or a code URL."
+                )
+            )
+
         # Additional safety check for code size
         MAX_SAFE_CODE_SIZE = 30000  # Reduced from 75KB
-        MAX_SAFE_LINES = 400        # Maximum lines for safety
-        
-        line_count = code_content.count('\n') + 1
+        MAX_SAFE_LINES = 400  # Maximum lines for safety
+
+        line_count = code_content.count("\n") + 1
         if len(code_content) > MAX_SAFE_CODE_SIZE or line_count > MAX_SAFE_LINES:
-            request_logger.warning(f"Code content is large ({len(code_content)} chars, {line_count} lines), applying safety limits")
-            
+            request_logger.warning(
+                f"Code content is large ({len(code_content)} chars, {line_count} lines), applying safety limits"
+            )
+
             # Truncate by lines first
-            lines = code_content.split('\n')
+            lines = code_content.split("\n")
             if len(lines) > MAX_SAFE_LINES:
                 lines = lines[:MAX_SAFE_LINES]
-                code_content = '\n'.join(lines)
-            
+                code_content = "\n".join(lines)
+
             # Then by character count
             if len(code_content) > MAX_SAFE_CODE_SIZE:
                 code_content = code_content[:MAX_SAFE_CODE_SIZE]
                 # Try to truncate at a line boundary
-                last_newline = code_content.rfind('\n')
+                last_newline = code_content.rfind("\n")
                 if last_newline > MAX_SAFE_CODE_SIZE * 0.8:
                     code_content = code_content[:last_newline]
-            
-            final_lines = code_content.count('\n') + 1
+
+            final_lines = code_content.count("\n") + 1
             code_content += f"\n\n// Content truncated for performance"
             code_content += f"\n// Showing {len(code_content)} characters, {final_lines} lines"
-        
+
         # Generate screenshot
         request_logger.info("Starting screenshot generation")
         generator = CodeshotGenerator()
@@ -175,24 +213,25 @@ async def codeshot(
             watermark=watermark,
             border_glow=border_glow,
         )
-        
+
         request_logger.info("Screenshot generation completed successfully")
         request_logger.debug(f"Generated image size: {len(img_base64)} characters (base64)")
-        
+
         return [
             TextContent(type="text", text=response_text),
-            ImageContent(type="image", mimeType="image/png", data=img_base64)
+            ImageContent(type="image", mimeType="image/png", data=img_base64),
         ]
-        
+
     except McpError:
         # Re-raise MCP errors as-is
         raise
     except Exception as e:
-        request_logger.error(f"Unexpected error during screenshot generation: {str(e)}", exc_info=True)
-        raise McpError(ErrorData(
-            code=INTERNAL_ERROR, 
-            message=f"Failed to generate code screenshot: {str(e)}"
-        ))
+        request_logger.error(
+            f"Unexpected error during screenshot generation: {str(e)}", exc_info=True
+        )
+        raise McpError(
+            ErrorData(code=INTERNAL_ERROR, message=f"Failed to generate code screenshot: {str(e)}")
+        )
 
 
 async def main():

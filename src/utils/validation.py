@@ -1,11 +1,15 @@
 """Utility functions for parameter validation and random selection."""
 
 import random
-from typing import Any, List, Tuple, Union, Optional
+from typing import Any, List, Optional, Tuple, Union
 
 from config.constants import (
-    AVAILABLE_THEMES, AVAILABLE_FRAMES, AVAILABLE_BACKGROUNDS, 
-    AVAILABLE_FONTS, DEFAULT_FONT_SIZE_RANGE, FONT_SIZE_LIMITS
+    AVAILABLE_BACKGROUNDS,
+    AVAILABLE_FONTS,
+    AVAILABLE_FRAMES,
+    AVAILABLE_THEMES,
+    DEFAULT_FONT_SIZE_RANGE,
+    FONT_SIZE_LIMITS,
 )
 from config.logging_config import get_logger
 
@@ -15,7 +19,7 @@ logger = get_logger(__name__)
 
 class ValidationResult:
     """Result of parameter validation with random selections and fallback notifications."""
-    
+
     def __init__(self):
         self.random_selections: List[str] = []
         self.fallback_notifications: List[str] = []
@@ -72,7 +76,9 @@ def validate_font_family(font_family: Optional[str], result: ValidationResult) -
         font_family = random.choice(AVAILABLE_FONTS)
         result.random_selections.append("Font")
     elif font_family not in AVAILABLE_FONTS:
-        result.fallback_notifications.append(f"Invalid font family '{font_family}', using 'fira-code'")
+        result.fallback_notifications.append(
+            f"Invalid font family '{font_family}', using 'fira-code'"
+        )
         font_family = "fira-code"
     return font_family
 
@@ -82,20 +88,28 @@ def validate_font_size(font_size: Optional[int], result: ValidationResult) -> in
     if font_size is None:
         font_size = random.randint(*DEFAULT_FONT_SIZE_RANGE)
         result.random_selections.append("Font Size")
-    elif not isinstance(font_size, int) or font_size < FONT_SIZE_LIMITS[0] or font_size > FONT_SIZE_LIMITS[1]:
+    elif (
+        not isinstance(font_size, int)
+        or font_size < FONT_SIZE_LIMITS[0]
+        or font_size > FONT_SIZE_LIMITS[1]
+    ):
         result.fallback_notifications.append(f"Invalid font size '{font_size}', using 14")
         font_size = 14
     return font_size
 
 
-def validate_boolean_with_random(value: Any, param_name: str, default: bool, result: ValidationResult, random_weight: float = 0.5) -> bool:
+def validate_boolean_with_random(
+    value: Any, param_name: str, default: bool, result: ValidationResult, random_weight: float = 0.5
+) -> bool:
     """Validate boolean parameters with optional random selection."""
     if value is None:
-        value = random.choices([True, False], weights=[random_weight, 1-random_weight])[0]
+        value = random.choices([True, False], weights=[random_weight, 1 - random_weight])[0]
         if value:
             result.random_selections.append(param_name)
     elif not isinstance(value, bool):
-        result.fallback_notifications.append(f"Invalid {param_name.lower()} value '{value}', using {default}")
+        result.fallback_notifications.append(
+            f"Invalid {param_name.lower()} value '{value}', using {default}"
+        )
         value = default
     return value
 
@@ -109,19 +123,36 @@ def validate_string_optional(value: Any, param_name: str) -> Union[str, None]:
 
 def _is_valid_hex_color(color: str) -> bool:
     """Check if a string is a valid hex color."""
-    return color.startswith("#") and len(color) in [4, 7] and all(c in "0123456789abcdefABCDEF" for c in color[1:])
+    return (
+        color.startswith("#")
+        and len(color) in [4, 7]
+        and all(c in "0123456789abcdefABCDEF" for c in color[1:])
+    )
 
 
 def format_response_text(
-    language: str, theme: str, frame_style: str, background: str, 
-    font_family: str, font_size: int, frame_width: int, frame_height: int,
-    effects: List[str], result: ValidationResult
+    language: str,
+    theme: str,
+    frame_style: str,
+    background: str,
+    font_family: str,
+    font_size: int,
+    frame_width: int,
+    frame_height: int,
+    effects: List[str],
+    result: ValidationResult,
 ) -> str:
     """Format the response text with all the generation details."""
     effects_text = f" • Effects: {', '.join(effects)}" if effects else ""
-    random_text = f" • Random: {', '.join(result.random_selections)} 🎲" if result.random_selections else ""
-    fallback_text = f"\n⚠️ **Fallbacks Applied**: {'; '.join(result.fallback_notifications)}" if result.fallback_notifications else ""
-    
+    random_text = (
+        f" • Random: {', '.join(result.random_selections)} 🎲" if result.random_selections else ""
+    )
+    fallback_text = (
+        f"\n⚠️ **Fallbacks Applied**: {'; '.join(result.fallback_notifications)}"
+        if result.fallback_notifications
+        else ""
+    )
+
     return (
         f"🎨 **Code Screenshot Generated!**\n\n"
         f"**Language**: {language.capitalize()}\n"
