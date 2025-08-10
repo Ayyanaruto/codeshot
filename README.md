@@ -1,6 +1,8 @@
 # 🎨 Codeshot - Beautiful Code Screenshots
 
-Generate stunning, professional code screenshots with themes, effects, and customizable styling. Perfect for social media, presentations, documentation, and sharing codeFor detailed logging configuration, see [docs/LOGGING.md](docs/LOGGING.md).
+Generate stunning, professional code screenshots with themes, effects, and customizable styling. Perfect for social media, presentations, documentation, and sharing code snippets.
+
+This project is built as a **Model Context Protocol (MCP) server**, enabling AI assistants to generate beautiful code screenshots programmatically.
 
 ## 🚢 Deployment
 
@@ -11,12 +13,11 @@ This project is optimized for Railway deployment with Docker.
 **Quick Deploy:**
 1. Fork this repository
 2. Connect to Railway
-3. Set environment variables (`AUTH_TOKEN`, `MY_NUMBER`)
+3. Set environment variables:
+   - `AUTH_TOKEN` - Your authentication token
+   - `MY_NUMBER` - Your phone number for authentication
+   - `LOG_LEVEL` - Optional: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: INFO)
 4. Deploy!
-
-**Detailed Instructions:**
-- 📋 [Deployment Checklist](DEPLOYMENT_CHECKLIST.md)
-- 📖 [Railway Deployment Guide](RAILWAY_DEPLOYMENT.md)
 
 **Included in Deployment:**
 - ✅ All fonts bundled (Fira Code, JetBrains Mono, Source Code Pro)
@@ -26,16 +27,38 @@ This project is optimized for Railway deployment with Docker.
 
 ### Local Development
 
+**Run locally:**
 ```bash
-# Run locally
 python main.py
-
-# Test with Docker
-docker build -t codeshot-mcp .
-docker run -p 8086:8086 -e AUTH_TOKEN=test -e MY_NUMBER=123 codeshot-mcp
 ```
 
-## 📄 Licenseippets.
+**Docker Development:**
+```bash
+# Build the Docker image
+docker build -t codeshot-mcp .
+
+# Run with Docker
+docker run -p 8086:8086 \
+  -e AUTH_TOKEN=test \
+  -e MY_NUMBER=123 \
+  -e LOG_LEVEL=DEBUG \
+  codeshot-mcp
+```
+
+**Docker Compose (Optional):**
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  codeshot:
+    build: .
+    ports:
+      - "8086:8086"
+    environment:
+      - AUTH_TOKEN=your-token
+      - MY_NUMBER=your-number
+      - LOG_LEVEL=INFO
+```ippets.
 
 ## ✨ Features
 
@@ -50,15 +73,31 @@ docker run -p 8086:8086 -e AUTH_TOKEN=test -e MY_NUMBER=123 codeshot-mcp
 
 ## 🚀 Quick Start
 
+### System Requirements
+
+- **Python 3.11+**
+- **System Dependencies**: 
+  - Tesseract OCR (for text processing)
+  - OpenCV libraries
+  - PIL/Pillow (Python Imaging Library)
+
+**Note**: All dependencies are included in the Docker container for deployment.
+
 ### Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/codeshot.git
+git clone https://github.com/Ayyanaruto/codeshot.git
 cd codeshot
 
-# Install dependencies
+# Option 1: Install with pip
+pip install -r requirements.txt
+
+# Option 2: Install as package
 pip install -e .
+
+# Option 3: Install with uv (recommended)
+uv sync
 
 # Set up environment variables
 cp .env.example .env
@@ -67,10 +106,28 @@ cp .env.example .env
 
 ### Usage
 
+**Environment Setup:**
+```bash
+# Required environment variables
+export AUTH_TOKEN="your-secret-token"
+export MY_NUMBER="your-phone-number"
+
+# Optional: Set log level
+export LOG_LEVEL="INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
+
+**Start the Server:**
 ```bash
 # Start the MCP server
 python main.py
 ```
+
+### MCP Tools Available
+
+This server provides two main tools:
+
+1. **`codeshot`** - Generate beautiful code screenshots with extensive customization options
+2. **`validate`** - Validate configuration and check server status
 
 ### API Example
 
@@ -90,6 +147,14 @@ def fibonacci(n):
     shadow=True,
     rounded_corners=True
 )
+
+# Or fetch code from a URL
+response = await codeshot(
+    code_url="https://github.com/Ayyanaruto/codeshot/blob/main/main.py",
+    theme="nord",
+    frame_style="windows",
+    background="transparent"
+)
 ```
 
 ## 📁 Project Structure
@@ -97,50 +162,76 @@ def fibonacci(n):
 ```
 codeshot/
 ├── main.py                 # MCP server entry point
-├── config/                 # Configuration and constants
+├── requirements.txt        # Dependencies
+├── pyproject.toml         # Project configuration
+├── uv.lock               # Dependency lock file
+├── Dockerfile            # Docker container configuration
+├── railway.json          # Railway deployment config
+├── start.sh             # Production startup script
+├── .env.example         # Environment variables template
+├── config/              # Configuration and constants
 │   ├── __init__.py
-│   └── constants.py       # Theme mappings, color definitions
-├── src/                   # Core application code
+│   ├── constants.py      # Theme mappings, color definitions
+│   └── logging_config.py # Logging setup
+├── src/                 # Core application code
 │   ├── __init__.py
-│   ├── core/             # Core functionality
+│   ├── core/            # Core functionality
 │   │   ├── __init__.py
 │   │   ├── generator.py  # Main screenshot generator
 │   │   └── renderer.py   # Code rendering logic
-│   ├── utils/            # Utility functions
+│   ├── utils/           # Utility functions
 │   │   ├── __init__.py
 │   │   ├── validation.py # Parameter validation
 │   │   ├── fonts.py      # Font loading utilities
 │   │   ├── http.py       # URL fetching
 │   │   └── backgrounds.py # Background generation
-│   ├── effects/          # Visual effects
+│   ├── effects/         # Visual effects
 │   │   ├── __init__.py
 │   │   ├── shadows.py    # Shadow effects
 │   │   ├── reflections.py # Reflection effects
 │   │   └── special.py    # Glow, watermarks, etc.
-│   └── frames/           # Window frame styles
+│   └── frames/          # Window frame styles
 │       ├── __init__.py
 │       ├── macos.py      # macOS window frame
 │       └── windows.py    # Windows window frame
-├── fonts/                # Font assets
+├── fonts/               # Font assets
 │   ├── FiraCode/
 │   ├── JetBrainsMono/
 │   └── SourceCodePro/
-├── tests/                # Test suite
-├── .gitignore           # Git ignore patterns
-├── pyproject.toml       # Project configuration
-└── README.md           # This file
+├── tests/               # Test suite
+│   ├── conftest.py
+│   ├── test_generator.py
+│   └── test_themes.py
+└── logs/               # Application logs
+    └── codeshot.log
 ```
 
 ## 🎨 Themes
 
+### Dark Themes
 - **dracula** - Dark theme with purple accents
-- **nord** - Arctic, north-bluish color palette
+- **nord** - Arctic, north-bluish color palette  
 - **monokai** - Classic dark theme with vibrant colors
+- **material** - Google's Material Design dark
+- **one-dark** - Atom's iconic One Dark theme
+- **gruvbox-dark** - Retro groove color scheme
+- **tokyo-night** - A clean, dark theme inspired by Tokyo's night
+- **catppuccin** - Soothing pastel theme for night owls
+- **github-dark** - GitHub's dark theme
+- **solarized-dark** - Precision colors for machines and people
+- **zenburn** - Low-contrast color scheme
+- **vim** - Classic Vim color scheme
+- **native** - Terminal-style theme
+- **fruity** - Colorful syntax highlighting
+- **cyberpunk** - High-contrast neon theme
+
+### Light Themes  
 - **github-light** - Clean light theme
 - **solarized-light** - Precision colors for machines and people
-- **material** - Google's Material Design
-- **one-dark** - Atom's iconic One Dark theme
 - **vs** - Visual Studio light theme
+- **friendly** - Easy on the eyes light theme
+- **colorful** - Vibrant light theme
+- **gruvbox-light** - Light version of the retro groove scheme
 
 ## 🖼️ Frame Styles
 
@@ -208,7 +299,7 @@ pytest --cov=src --cov-report=html
 pytest tests/test_generator.py
 ```
 
-## � Logging and Monitoring
+## 📊 Logging and Monitoring
 
 Codeshot includes a comprehensive logging system for debugging and monitoring:
 
@@ -246,11 +337,9 @@ with log_performance(logger, "image generation"):
 - Automatic rotation when files exceed 10MB
 - Configurable via `LOG_FILE` environment variable
 
-For detailed logging configuration, see [docs/LOGGING.md](docs/LOGGING.md).
+## 📄 License
 
-## �📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 
@@ -262,10 +351,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Support
 
-- 📚 [Documentation](https://docs.codeshot.dev)
-- 🐛 [Bug Reports](https://github.com/codeshot-team/codeshot/issues)
-- 💬 [Discussions](https://github.com/codeshot-team/codeshot/discussions)
+-  [Bug Reports](https://github.com/Ayyanaruto/codeshot/issues)
+- 💬 [Discussions](https://github.com/Ayyanaruto/codeshot/discussions)
 
 ---
 
-Made with ❤️ by the Codeshot Team
+Made with ❤️ by Ayyan

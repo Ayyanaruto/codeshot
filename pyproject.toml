@@ -5,7 +5,7 @@ description = "Beautiful code screenshot generator with themes, effects, and pro
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
-    {name = "Codeshot Team", email = "ayyan.sameer.shaikh.eren@gmail.com"}
+    {name = "Ayyan", email = "ayyan.sameer.shaikh.eren@gmail.com"}
 ]
 keywords = ["code", "screenshot", "image", "generator", "syntax-highlighting"]
 dependencies = [
@@ -39,10 +39,9 @@ dev = [
 codeshot = "main:main"
 
 [project.urls]
-Homepage = "https://github.com/codeshot-team/codeshot"
-Repository = "https://github.com/codeshot-team/codeshot"
-Documentation = "https://docs.codeshot.dev"
-"Bug Tracker" = "https://github.com/codeshot-team/codeshot/issues"
+Homepage = "https://github.com/Ayyanaruto/codeshot"
+Repository = "https://github.com/Ayyanaruto/codeshot"
+"Bug Tracker" = "https://github.com/Ayyanaruto/codeshot/issues"
 
 [build-system]
 requires = ["hatchling"]
