@@ -70,13 +70,71 @@ def detect_language(code: str, language: Optional[str] = None) -> str:
     return language
 
 
+def adjust_line_spacing(code: str, font_size: int) -> str:
+    """
+    Dynamically adjust line spacing by adding empty lines where text appears too cramped.
+    Analyzes line density and adds spacing to improve readability.
+    """
+    lines = code.split('\n')
+    if len(lines) <= 1:
+        return code
+    
+    # Calculate optimal spacing based on font size
+    # Smaller fonts need more spacing, larger fonts need less
+    spacing_threshold = max(1, 20 - font_size // 2)  # Adaptive threshold
+    
+    adjusted_lines = []
+    consecutive_long_lines = 0
+    
+    for i, line in enumerate(lines):
+        adjusted_lines.append(line)
+        
+        # Check if current line is "dense" (long or contains many symbols)
+        is_dense_line = (
+            len(line.strip()) > 60 or  # Long line
+            sum(1 for c in line if c in '{}[]().,;:=+-*/<>!&|') > 8 or  # Many symbols
+            line.strip().startswith(('def ', 'class ', 'function ', 'if ', 'for ', 'while '))  # Key statements
+        )
+        
+        if is_dense_line:
+            consecutive_long_lines += 1
+        else:
+            consecutive_long_lines = 0
+        
+        # Add spacing after dense content blocks
+        should_add_spacing = (
+            consecutive_long_lines >= 2 and  # Multiple consecutive dense lines
+            i < len(lines) - 1 and  # Not the last line
+            lines[i + 1].strip() and  # Next line is not empty
+            not lines[i + 1].strip().startswith((' ', '\t')) and  # Next line is not indented
+            len(lines[i + 1].strip()) > 20  # Next line is substantial
+        )
+        
+        # Also add spacing before function/class definitions for better separation
+        if (i < len(lines) - 1 and 
+            lines[i + 1].strip().startswith(('def ', 'class ', 'function ', '@')) and
+            line.strip() and not line.strip().startswith(('def ', 'class ', 'function ', '@'))):
+            should_add_spacing = True
+        
+        # Add spacing after code blocks (closing braces/brackets)
+        if (line.strip() in ['}', ']', ')', '});', ']);', ');'] and 
+            i < len(lines) - 1 and lines[i + 1].strip()):
+            should_add_spacing = True
+        
+        if should_add_spacing:
+            adjusted_lines.append('')  # Add empty line
+            consecutive_long_lines = 0
+    
+    return '\n'.join(adjusted_lines)
+
+
 def create_code_image(
     code: str, 
     language: str, 
     theme: str, 
     font_size: int, 
     line_numbers: bool = True,
-    font_path: Optional[str] = None
+    font_path: Optional[str] = None,
 ) -> Image.Image:
     """Generate syntax highlighted code image."""
     
@@ -108,6 +166,9 @@ def create_code_image(
         code += "\n\n... (content truncated for image generation)"
         line_count = code.count('\n') + 1
         logger.info(f"Final image code: {len(code)} chars, {line_count} lines")
+    
+    # Apply dynamic line spacing adjustments
+    code = adjust_line_spacing(code, font_size)
     
     # Get lexer
     try:
