@@ -139,6 +139,32 @@ async def codeshot(
                 message="Please provide either code text or a code URL."
             ))
         
+        # Additional safety check for code size
+        MAX_SAFE_CODE_SIZE = 30000  # Reduced from 75KB
+        MAX_SAFE_LINES = 400        # Maximum lines for safety
+        
+        line_count = code_content.count('\n') + 1
+        if len(code_content) > MAX_SAFE_CODE_SIZE or line_count > MAX_SAFE_LINES:
+            request_logger.warning(f"Code content is large ({len(code_content)} chars, {line_count} lines), applying safety limits")
+            
+            # Truncate by lines first
+            lines = code_content.split('\n')
+            if len(lines) > MAX_SAFE_LINES:
+                lines = lines[:MAX_SAFE_LINES]
+                code_content = '\n'.join(lines)
+            
+            # Then by character count
+            if len(code_content) > MAX_SAFE_CODE_SIZE:
+                code_content = code_content[:MAX_SAFE_CODE_SIZE]
+                # Try to truncate at a line boundary
+                last_newline = code_content.rfind('\n')
+                if last_newline > MAX_SAFE_CODE_SIZE * 0.8:
+                    code_content = code_content[:last_newline]
+            
+            final_lines = code_content.count('\n') + 1
+            code_content += f"\n\n// Content truncated for performance"
+            code_content += f"\n// Showing {len(code_content)} characters, {final_lines} lines"
+        
         # Generate screenshot
         request_logger.info("Starting screenshot generation")
         generator = CodeshotGenerator()

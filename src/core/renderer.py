@@ -9,6 +9,10 @@ from pygments.formatters import ImageFormatter
 from pygments.styles import get_style_by_name
 
 from config.constants import THEME_MAPPINGS, QUALITY_SCALE
+import logging
+
+# Set PIL image size limit to prevent decompression bomb warnings
+Image.MAX_IMAGE_PIXELS = 200_000_000  # 200 million pixels max
 
 
 def detect_language(code: str, language: Optional[str] = None) -> str:
@@ -75,6 +79,36 @@ def create_code_image(
     font_path: Optional[str] = None
 ) -> Image.Image:
     """Generate syntax highlighted code image."""
+    
+    logger = logging.getLogger(__name__)
+    
+    # Absolute safety limits to prevent system crashes
+    MAX_LINES_FOR_IMAGE = 150  # Absolute maximum lines to render
+    MAX_CHARS_FOR_IMAGE = 15000  # Absolute maximum characters
+    
+    # Truncate code if it's too large for image generation
+    line_count = code.count('\n') + 1
+    if line_count > MAX_LINES_FOR_IMAGE or len(code) > MAX_CHARS_FOR_IMAGE:
+        logger.warning(f"Code too large for safe rendering ({len(code)} chars, {line_count} lines)")
+        logger.warning(f"Truncating to {MAX_LINES_FOR_IMAGE} lines for image generation")
+        
+        lines = code.split('\n')
+        if len(lines) > MAX_LINES_FOR_IMAGE:
+            lines = lines[:MAX_LINES_FOR_IMAGE]
+            code = '\n'.join(lines)
+            
+        if len(code) > MAX_CHARS_FOR_IMAGE:
+            code = code[:MAX_CHARS_FOR_IMAGE]
+            # Ensure we end at a line boundary
+            last_newline = code.rfind('\n')
+            if last_newline > len(code) * 0.8:
+                code = code[:last_newline]
+        
+        # Add truncation notice
+        code += "\n\n... (content truncated for image generation)"
+        line_count = code.count('\n') + 1
+        logger.info(f"Final image code: {len(code)} chars, {line_count} lines")
+    
     # Get lexer
     try:
         lexer = get_lexer_by_name(language)
@@ -84,18 +118,40 @@ def create_code_image(
     # Map theme to pygments style
     pygments_theme = THEME_MAPPINGS.get(theme, theme)
     
-    # Enhanced formatter with ultra-high-quality settings
+    # Dynamic quality scaling and font size based on code size
+    code_length = len(code)
+    line_count = code.count('\n') + 1
+    
+    # More aggressive limits to prevent memory issues
+    if code_length > 20000 or line_count > 200:
+        quality_scale = 1  # Low quality for large code
+        # Reduce font size for very large code to make image smaller
+        font_size = max(8, font_size - 4) 
+        logger.info(f"Using low quality rendering (1x) and reduced font size ({font_size}px) for large code: {code_length} chars, {line_count} lines")
+    elif code_length > 10000 or line_count > 100:
+        quality_scale = 2  # Medium quality for medium code
+        font_size = max(10, font_size - 2)
+        logger.info(f"Using medium quality rendering (2x) and reduced font size ({font_size}px) for medium code: {code_length} chars, {line_count} lines")
+    else:
+        quality_scale = QUALITY_SCALE  # Full quality for small code
+    
+    # Enhanced formatter with dynamic quality settings
     formatter_kwargs = {
         "style": pygments_theme,
-        "font_size": font_size * QUALITY_SCALE,
+        "font_size": font_size * quality_scale,
         "line_numbers": line_numbers,
         "line_number_chars": 4,
-        "line_number_pad": 15 * QUALITY_SCALE,
+        "line_number_pad": 15 * quality_scale,
         "line_number_separator": True,
         "image_format": "PNG",
-        "image_pad": 25 * QUALITY_SCALE,
+        "image_pad": 25 * quality_scale,
         "image_quality": 100,
     }
+    
+    # For very large code, reduce padding to make image smaller
+    if line_count > 150:
+        formatter_kwargs["image_pad"] = 10 * quality_scale
+        formatter_kwargs["line_number_pad"] = 8 * quality_scale
     
     # Theme-specific styling
     if theme in ["dracula", "catppuccin"]:
@@ -225,16 +281,21 @@ def create_code_image(
     
     formatter = ImageFormatter(**formatter_kwargs)
     
-    # Generate syntax highlighted image at high resolution
+    # Generate syntax highlighted image at appropriate resolution
     highlighted_img_bytes = highlight(code, lexer, formatter)
     code_img_high_res = Image.open(io.BytesIO(highlighted_img_bytes))
     
-    # Scale down with high-quality resampling
-    target_width = code_img_high_res.width // QUALITY_SCALE
-    target_height = code_img_high_res.height // QUALITY_SCALE
-    code_img = code_img_high_res.resize(
-        (target_width, target_height), 
-        Image.Resampling.LANCZOS
-    )
+    # Scale down with high-quality resampling (only if we used scaling)
+    if quality_scale > 1:
+        target_width = code_img_high_res.width // quality_scale
+        target_height = code_img_high_res.height // quality_scale
+        code_img = code_img_high_res.resize(
+            (target_width, target_height), 
+            Image.Resampling.LANCZOS
+        )
+        code_img_high_res.close()  # Free memory
+    else:
+        # No scaling needed
+        code_img = code_img_high_res
     
     return code_img
