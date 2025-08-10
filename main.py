@@ -98,6 +98,7 @@ async def codeshot(
     code_url: Annotated[
         AnyUrl | None, Field(description="GitHub/Gist URL to fetch code from")
     ] = None,
+    from_image: Annotated[bool, Field(description="Reserved parameter (not implemented)")] = False,
     language: Annotated[
         str | None, Field(description="Programming language (auto-detected if not specified)")
     ] = None,
@@ -149,6 +150,10 @@ async def codeshot(
     request_logger.debug(
         f"Parameters: theme={theme}, frame_style={frame_style}, background={background}, font_family={font_family}"
     )
+
+    # Log if from_image parameter is used (for backward compatibility)
+    if from_image:
+        request_logger.info("Note: from_image parameter is not implemented and will be ignored")
 
     try:
         # Get code content
