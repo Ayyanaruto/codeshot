@@ -82,13 +82,29 @@ async def validate() -> str:
 
 CODESHOT_DESCRIPTION = RichToolDescription(
     description=(
-        "Generate beautiful code screenshots with themes, colors, and frame styles. "
-        "Features solid backgrounds, GitHub/Gist URL support, shadows, reflections, and effects. "
-        "Automatically selects random themes, frames, backgrounds, and fonts when not specified for variety and surprise. "
-        "Perfect for social media, presentations, and documentation."
+        "Generate stunning, professional code screenshots/images with advanced theming and visual effects. "
+        "This MCP server transforms your code into beautiful, shareable images with customizable themes, "
+        "frame styles, backgrounds, fonts, and visual effects like shadows, reflections, and glowing borders. "
+        "Supports multiple programming languages with syntax highlighting, automatic language detection, "
+        "and fetching code directly from GitHub/Gist URLs. When parameters are not specified, "
+        "the server intelligently selects random combinations for creative variety and visual appeal. "
+        "Features include line numbers, custom window titles, watermarks, and professional styling options. "
+        "Perfect for creating eye-catching code visuals for social media posts, technical presentations, "
+        "documentation, tutorials, blog articles, and portfolio showcases."
     ),
-    use_when="Use when you need beautiful code images for sharing, presentations, or social media.",
-    side_effects=None,
+    use_when=(
+        "Use this tool when you need to create visually appealing code images for: "
+        "social media sharing (Twitter, LinkedIn, Instagram), technical presentations and slides, "
+        "documentation and tutorials, blog posts and articles, portfolio showcases, "
+        "code reviews and discussions, educational materials, or any situation where you want to "
+        "present code in an attractive, professional format that's easy to read and share."
+    ),
+    side_effects=(
+        "Generates high-quality PNG images encoded in base64 format. "
+        "May apply safety limits for very large code files (>30KB or >400 lines) by truncating content. "
+        "Automatically detects programming language if not specified. "
+        "Applies random styling when parameters are omitted for creative variety."
+    ),
 )
 
 
